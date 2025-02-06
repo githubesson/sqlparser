@@ -12,7 +12,7 @@ import (
 	"sqlparser/pkg/writer"
 )
 
-func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers int) error {
+func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers int, selectedTable *TableInfo) error {
 	startTime := time.Now()
 
 	file, err := os.Open(filename)
@@ -34,6 +34,7 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 	}, numWorkers*2)
 
 	fmt.Printf("Starting to process file: %s at %s\n", filename, startTime.Format(time.RFC3339))
+	fmt.Printf("Processing table: %s (lines %d-%d)\n", selectedTable.Name, selectedTable.LineFrom, selectedTable.LineTo)
 
 	// Start worker pool
 	var wg sync.WaitGroup
@@ -70,27 +71,9 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 				continue
 			}
 
-			if result.rows != nil {
+			if result.rows != nil && result.tableName == selectedTable.Name {
 				// Handle new table
 				if result.tableName != currentTableName {
-					if currentTableName != "" {
-						if len(currentBatch) > 0 {
-							if err := writer.WriteRows(currentBatch); err != nil {
-								fmt.Printf("Error writing rows: %v\n", err)
-								continue
-							}
-							batchCount++
-							fmt.Printf("Processed batch %d for table %s (%d rows)\n", batchCount, currentTableName, len(currentBatch))
-							currentBatch = nil // Help GC
-						}
-						if err := writer.WriteTableEnd(); err != nil {
-							fmt.Printf("Error ending table: %v\n", err)
-							continue
-						}
-						tableDuration := time.Since(tableStartTime)
-						fmt.Printf("Finished processing table %s (total %d rows in %d batches) in %v\n",
-							currentTableName, rowCount, batchCount, tableDuration)
-					}
 					currentTableName = result.tableName
 					if err := writer.WriteTableStart(currentTableName); err != nil {
 						fmt.Printf("Error starting table: %v\n", err)
@@ -100,7 +83,7 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 					rowCount = 0
 					batchCount = 0
 					tableStartTime = time.Now()
-					fmt.Printf("Started processing new table: %s at %s\n", currentTableName, tableStartTime.Format(time.RFC3339))
+					fmt.Printf("Started processing table: %s at %s\n", currentTableName, tableStartTime.Format(time.RFC3339))
 				}
 
 				// Process rows immediately
@@ -132,19 +115,37 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 
 	// Read and send statements to workers
 	var currentStatement strings.Builder
+	lineNum := 0
+	inSelectedTable := false
+
 	for scanner.Scan() {
+		lineNum++
 		line := scanner.Text()
 
+		// Skip empty lines and comments
 		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "--") {
 			continue
 		}
 
-		currentStatement.WriteString(line)
-		currentStatement.WriteString(" ")
+		// Check if we're in the selected table's INSERT statements
+		if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(line)), "INSERT INTO") {
+			tableParts := strings.Split(line, "`")
+			if len(tableParts) >= 2 && tableParts[1] == selectedTable.Name {
+				inSelectedTable = true
+			} else {
+				inSelectedTable = false
+			}
+		}
 
-		if strings.HasSuffix(strings.TrimSpace(line), ";") {
-			statementChan <- currentStatement.String()
-			currentStatement.Reset()
+		// Only process INSERT statements for the selected table
+		if inSelectedTable {
+			currentStatement.WriteString(line)
+			currentStatement.WriteString(" ")
+
+			if strings.HasSuffix(strings.TrimSpace(line), ";") {
+				statementChan <- currentStatement.String()
+				currentStatement.Reset()
+			}
 		}
 	}
 
@@ -177,6 +178,7 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 	totalDuration := time.Since(startTime)
 	fmt.Printf("\nProcessing Summary:\n")
 	fmt.Printf("File: %s\n", filename)
+	fmt.Printf("Table: %s\n", selectedTable.Name)
 	fmt.Printf("Total Statements: %d\n", totalStatements)
 	fmt.Printf("Total Duration: %v\n", totalDuration)
 	fmt.Printf("Average Time per Statement: %v\n", totalDuration/time.Duration(totalStatements))

@@ -27,11 +27,26 @@ func main() {
 	}
 
 	filename := args[0]
+
+	// Scan for tables and prompt for selection
+	tables, err := parser.ScanTables(filename)
+	if err != nil {
+		fmt.Printf("Error scanning tables: %v\n", err)
+		os.Exit(1)
+	}
+
+	selectedTable, err := parser.PromptTableSelection(tables)
+	if err != nil {
+		fmt.Printf("Error selecting table: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("\nSelected table: %s\n", selectedTable.Name)
+
 	outputFormat := models.OutputFormat(*format)
 
 	// Create output file or use stdout
 	var out *os.File
-	var err error
 	if *output != "" {
 		out, err = os.Create(*output)
 		if err != nil {
@@ -53,7 +68,7 @@ func main() {
 
 	// Process the file
 	fmt.Printf("Processing with %d workers...\n", *workers)
-	err = parser.ProcessSQLFileInBatches(filename, w, *workers)
+	err = parser.ProcessSQLFileInBatches(filename, w, *workers, selectedTable)
 	if err != nil {
 		fmt.Printf("Error processing SQL file: %v\n", err)
 		os.Exit(1)
