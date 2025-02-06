@@ -1,4 +1,4 @@
-name: Release Go Binary
+name: Release SQL Parser Binary
 
 on:
   push:
@@ -22,28 +22,29 @@ jobs:
 
       - name: Build binaries
         run: |
-          BINARY_NAME="myapp"
+          BINARY_NAME="sqlparser"
           VERSION=${GITHUB_REF#refs/tags/}
+          BUILD_PATH="cmd/sqlparser/main.go"
           
           # Build for Linux
-          GOOS=linux GOARCH=amd64 go build -o "${BINARY_NAME}-linux-amd64"
+          GOOS=linux GOARCH=amd64 go build -o "${BINARY_NAME}-linux-amd64" ${BUILD_PATH}
           tar czf "${BINARY_NAME}-linux-amd64.tar.gz" "${BINARY_NAME}-linux-amd64"
           
           # Build for macOS
-          GOOS=darwin GOARCH=amd64 go build -o "${BINARY_NAME}-darwin-amd64"
+          GOOS=darwin GOARCH=amd64 go build -o "${BINARY_NAME}-darwin-amd64" ${BUILD_PATH}
           tar czf "${BINARY_NAME}-darwin-amd64.tar.gz" "${BINARY_NAME}-darwin-amd64"
           
           # Build for Windows
-          GOOS=windows GOARCH=amd64 go build -o "${BINARY_NAME}-windows-amd64.exe"
+          GOOS=windows GOARCH=amd64 go build -o "${BINARY_NAME}-windows-amd64.exe" ${BUILD_PATH}
           zip "${BINARY_NAME}-windows-amd64.zip" "${BINARY_NAME}-windows-amd64.exe"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            myapp-linux-amd64.tar.gz
-            myapp-darwin-amd64.tar.gz
-            myapp-windows-amd64.zip
+            sqlparser-linux-amd64.tar.gz
+            sqlparser-darwin-amd64.tar.gz
+            sqlparser-windows-amd64.zip
           draft: false
           prerelease: false
           generate_release_notes: true
