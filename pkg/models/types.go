@@ -1,8 +1,22 @@
 package models
 
-const (
-	BatchSize = 100000
+import (
+	"os"
+	"strconv"
 )
+
+var (
+	BatchSize = getBatchSize()
+)
+
+func getBatchSize() int {
+	if val := os.Getenv("BATCH_SIZE"); val != "" {
+		if size, err := strconv.Atoi(val); err == nil && size > 0 {
+			return size
+		}
+	}
+	return 100000 // default batch size
+}
 
 type OutputFormat string
 

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
+	"strconv"
 
 	"sqlparser/pkg/models"
 	"sqlparser/pkg/parser"
@@ -14,7 +14,7 @@ import (
 func main() {
 	format := flag.String("format", "txt", "Output format (txt, csv, json)")
 	output := flag.String("output", "", "Output file (if not specified, prints to stdout)")
-	workers := flag.Int("workers", runtime.NumCPU(), "Number of worker threads (default: number of CPU cores)")
+	workers := flag.Int("workers", getWorkerCount(), "Number of worker threads")
 	flag.Parse()
 
 	args := flag.Args()
@@ -22,7 +22,7 @@ func main() {
 		fmt.Printf("Usage: sqlparser [-format=txt|csv|json] [-output=filename] [-workers=N] <sqlfile>\n")
 		fmt.Printf("  -format: Output format (default: txt)\n")
 		fmt.Printf("  -output: Output file (default: stdout)\n")
-		fmt.Printf("  -workers: Number of worker threads (default: %d)\n", runtime.NumCPU())
+		fmt.Printf("  -workers: Number of worker threads (default: %d)\n", getWorkerCount())
 		os.Exit(1)
 	}
 
@@ -58,4 +58,13 @@ func main() {
 		fmt.Printf("Error processing SQL file: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func getWorkerCount() int {
+	if val := os.Getenv("WORKER_COUNT"); val != "" {
+		if count, err := strconv.Atoi(val); err == nil && count > 0 {
+			return count
+		}
+	}
+	return 1
 }
