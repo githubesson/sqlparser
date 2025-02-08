@@ -21,12 +21,14 @@ func getBatchSize() int {
 type OutputFormat string
 
 const (
-	FormatText OutputFormat = "txt"
-	FormatCSV  OutputFormat = "csv"
-	FormatJSON OutputFormat = "json"
+	FormatText  OutputFormat = "txt"
+	FormatCSV   OutputFormat = "csv"
+	FormatJSON  OutputFormat = "json"
+	FormatJSONL OutputFormat = "jsonl"
 )
 
 type Row struct {
+	TableName string                 `json:"table_name,omitempty"`
 	RowNumber int                    `json:"row_number"`
 	Data      map[string]interface{} `json:"data"`
 }

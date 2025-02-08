@@ -15,19 +15,17 @@ type Writer interface {
 	WriteRows(rows []models.Row) error
 	WriteTableEnd() error
 	Close() error
+	Type() models.OutputFormat
 }
 
 func CreateWriter(format models.OutputFormat, output io.Writer) (Writer, error) {
-
 	bufferedWriter := bufio.NewWriterSize(output, bufferSize)
 
 	switch format {
 	case models.FormatJSON:
-		w, err := NewJSONWriter(bufferedWriter)
-		if err != nil {
-			return nil, err
-		}
-		return w, nil
+		return NewJSONWriter(bufferedWriter)
+	case models.FormatJSONL:
+		return NewJSONLWriter(bufferedWriter)
 	case models.FormatCSV:
 		return NewCSVWriter(bufferedWriter), nil
 	case models.FormatText:

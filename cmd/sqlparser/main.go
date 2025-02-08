@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	format := flag.String("format", "txt", "Output format (txt, csv, json)")
+	format := flag.String("format", "txt", "Output format (txt, csv, json, jsonl)")
 	output := flag.String("output", "", "Output file (if not specified, prints to stdout)")
 	workers := flag.Int("workers", getWorkerCount(), "Number of worker threads")
 	flag.Parse()

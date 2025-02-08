@@ -88,6 +88,10 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 
 				// Process rows immediately
 				for _, row := range result.rows {
+					if writer.Type() == models.FormatJSONL {
+						row.TableName = currentTableName
+					}
+					
 					rowCount++
 					row.RowNumber = rowCount
 					currentBatch = append(currentBatch, row)
