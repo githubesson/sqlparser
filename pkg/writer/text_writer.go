@@ -52,3 +52,7 @@ func (w *TextWriter) WriteTableEnd() error {
 func (w *TextWriter) Close() error {
 	return w.writer.Flush()
 }
+
+func (w *TextWriter) Type() models.OutputFormat {
+	return models.FormatText
+}

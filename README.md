@@ -9,6 +9,7 @@ A high-performance SQL INSERT statement parser that processes large SQL files an
 - Parallel processing with configurable worker count
 - Multiple output formats:
   - JSON
+  - JSONL
   - CSV
   - Text
 - Buffered I/O for optimal performance
@@ -25,7 +26,7 @@ go build cmd/sqlparser/main.go
 ## Usage
 
 ```bash
-sqlparser [-format=txt|csv|json] [-output=filename] [-workers=N] <sqlfile>
+sqlparser [-format=txt|csv|json|jsonl] [-output=filename] [-workers=N] <sqlfile>
 ```
 
 ### Arguments
@@ -34,6 +35,7 @@ sqlparser [-format=txt|csv|json] [-output=filename] [-workers=N] <sqlfile>
   - `txt`: Human-readable text format
   - `csv`: CSV format with headers
   - `json`: JSON format with table structure
+  - `jsonl`: JSON lines format with table structure
 - `-output`: Output file path (default: stdout)
 - `-workers`: Number of worker threads (default: 1)
 - `<sqlfile>`: Input SQL file containing INSERT statements
@@ -62,6 +64,11 @@ sqlparser -format=csv -workers=4 -output=output.csv input.sql
 3. Process SQL file and print to console in text format:
 ```bash
 sqlparser input.sql
+```
+
+4. Process SQL file and output as JSON lines:
+```bash
+sqlparser -format=jsonl -output=output.json input.sql
 ```
 
 ## Performance Optimization
@@ -108,6 +115,12 @@ Row,id,name,email
     ]
   }
 ]
+```
+
+### JSONL Format
+```json
+{"table_name": "users", "rows": [{"row_number": 1, "data": {"id": "1", "name": "John Doe", "email": "john@example.com"}}]}
+{"table_name": "users", "rows": [{"row_number": 2, "data": {"id": "2", "name": "John Doe", "email": "john@example.com"}}]}
 ```
 
 ## License

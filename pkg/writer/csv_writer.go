@@ -76,3 +76,7 @@ func (w *CSVWriter) Close() error {
 	w.writer.Flush()
 	return w.buffer.Flush()
 }
+
+func (w *CSVWriter) Type() models.OutputFormat {
+	return models.FormatCSV
+}

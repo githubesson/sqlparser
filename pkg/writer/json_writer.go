@@ -85,3 +85,7 @@ func (w *JSONWriter) Close() error {
 	}
 	return w.writer.Flush()
 }
+
+func (w *JSONWriter) Type() models.OutputFormat {
+	return models.FormatJSON
+}
