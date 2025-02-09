@@ -78,16 +78,29 @@ func PromptTableSelection(tables []TableInfo) (*TableInfo, error) {
 	}
 
 	fmt.Println("\nFound the following tables with INSERT statements:")
+	fmt.Printf("0. Export all tables\n")
 	for i, table := range tables {
 		fmt.Printf("%d. %s\n", i+1, table.Name)
 	}
 
 	var choice int
-	fmt.Print("\nEnter the number of the table you want to parse (1-" + fmt.Sprint(len(tables)) + "): ")
+	fmt.Print("\nEnter the number of the table you want to parse (0-" + fmt.Sprint(len(tables)) + "): ")
 	_, err := fmt.Scanf("%d", &choice)
-	if err != nil || choice < 1 || choice > len(tables) {
+	if err != nil || choice < 0 || choice > len(tables) {
 		return nil, fmt.Errorf("invalid selection")
 	}
 
+	if choice == 0 {
+		return nil, &AllTablesSelected{Tables: tables}
+	}
+
 	return &tables[choice-1], nil
+}
+
+type AllTablesSelected struct {
+	Tables []TableInfo
+}
+
+func (e *AllTablesSelected) Error() string {
+	return "all tables selected"
 }

@@ -38,6 +38,7 @@ sqlparser [-format=txt|csv|json|jsonl] [-output=filename] [-workers=N] <sqlfile>
   - `jsonl`: JSON lines format with table structure
 - `-output`: Output file path (default: stdout)
 - `-workers`: Number of worker threads (default: 1)
+- `-all`: Export all tables (default: false)
 - `<sqlfile>`: Input SQL file containing INSERT statements
 
 ### Environment Variables

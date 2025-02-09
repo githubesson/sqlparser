@@ -88,10 +88,6 @@ func ProcessSQLFileInBatches(filename string, writer writer.Writer, numWorkers i
 
 				// Process rows immediately
 				for _, row := range result.rows {
-					if writer.Type() == models.FormatJSONL {
-						row.TableName = currentTableName
-					}
-					
 					rowCount++
 					row.RowNumber = rowCount
 					currentBatch = append(currentBatch, row)
@@ -195,7 +191,15 @@ func processStatement(statement string, numWorkers int) (string, []models.Row, e
 	statement = strings.TrimSpace(strings.TrimSuffix(statement, ";"))
 
 	if strings.HasPrefix(strings.ToUpper(statement), "INSERT INTO") {
-		return parseInsert(statement, numWorkers)
+		tableName, rows, err := parseInsert(statement, numWorkers)
+		if err != nil {
+			return "", nil, err
+		}
+		// Set the table name for each row
+		for i := range rows {
+			rows[i].TableName = tableName
+		}
+		return tableName, rows, nil
 	}
 	return "", nil, nil
 }

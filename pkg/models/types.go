@@ -9,6 +9,13 @@ var (
 	BatchSize = getBatchSize()
 )
 
+const (
+	FormatText  OutputFormat = "txt"
+	FormatCSV   OutputFormat = "csv"
+	FormatJSON  OutputFormat = "json"
+	FormatJSONL OutputFormat = "jsonl"
+)
+
 func getBatchSize() int {
 	if val := os.Getenv("BATCH_SIZE"); val != "" {
 		if size, err := strconv.Atoi(val); err == nil && size > 0 {
@@ -20,12 +27,9 @@ func getBatchSize() int {
 
 type OutputFormat string
 
-const (
-	FormatText  OutputFormat = "txt"
-	FormatCSV   OutputFormat = "csv"
-	FormatJSON  OutputFormat = "json"
-	FormatJSONL OutputFormat = "jsonl"
-)
+func (f OutputFormat) Extension() string {
+	return string(f)
+}
 
 type Row struct {
 	TableName string                 `json:"table_name,omitempty"`

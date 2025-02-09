@@ -29,7 +29,8 @@ func parseRowsSequential(tableName string, columns []string, values [][]string) 
 			}
 		}
 		rows[i] = models.Row{
-			Data: rowData,
+			TableName: tableName,
+			Data:      rowData,
 		}
 	}
 	return tableName, rows, nil
@@ -70,7 +71,8 @@ func parseRowsParallel(tableName string, columns []string, values [][]string, nu
 					}
 				}
 				rows[idx] = models.Row{
-					Data: rowData,
+					TableName: tableName,
+					Data:      rowData,
 				}
 			}
 		}(start, end)
